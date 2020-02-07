@@ -1,6 +1,9 @@
 # Author: Falk (falkgaard@gmail.com) 2020
 # License: CC0 (AKA "Do Whatever The Fuck You Want")
 
+# TODO: Adaptive width? E.g. skip tty blob or git blob if width is insufficient
+# TODO: Fix width filler bug (seems CWD related)
+
 # Documentation {{
 # 
 #  1. Install Oh-My-Zsh
@@ -38,11 +41,11 @@ zsh_falkline_symbol_prompt_mark="->"
 zsh_falkline_symbol_command_success=""
 zsh_falkline_symbol_command_error="x"
 zsh_falkline_symbol_blob_transition_left=""
-zsh_falkline_symbol_blob_transition_middle="▌"
+zsh_falkline_symbol_blob_transition_middle="█ "
 zsh_falkline_symbol_blob_transition_right=""
-zsh_falkline_symbol_git_branch_icon=""
-zsh_falkline_symbol_git_dirty='●'
-zsh_falkline_symbol_git_clean='●'
+zsh_falkline_symbol_git_branch_icon=" "
+zsh_falkline_symbol_git_dirty='● '
+zsh_falkline_symbol_git_clean='● '
 # Nnumber style {{{
 # Pick one!
 #   zsh_falkline_symbol_array_numbers=("❶ " "❷ " "❸ " "❹ " "❺ " "❻ " "❼ " "❽ " "❾ " "❿ " "⓫ " "⓬ " "⓭ " "⓮ " "⓯ " "⓰ " "⓱ " "⓲ " "⓳ " "⓴ ")
@@ -56,7 +59,15 @@ zsh_falkline_symbol_git_clean='●'
 # Color definitions {{{
 zsh_falkline_color_privileged='255;220;128'
 zsh_falkline_color_unprivileged='96;128;128'
-zsh_falkline_color_blob='48;48;48'
+zsh_falkline_color_blob_unprivileged='48;48;48'
+zsh_falkline_color_blob_privileged='64;24;64'
+function zsh_falkline_color_blob() {
+   if  [[ $(print -P %#) == "#" ]]; then
+      echo $zsh_falkline_color_blob_privileged
+   else
+      echo $zsh_falkline_color_blob_unprivileged
+   fi
+}
 zsh_falkline_color_ok_bg='192;255;96'
 zsh_falkline_color_ok_fg='96;128;48'
 zsh_falkline_color_err_bg='255;96;96'
@@ -79,44 +90,43 @@ zsh_falkline_color_git_dirty='255;128;160'
 zsh_falkline_color_git_clean='160;240;192'
 # Color definitions }}}
 # Style definitions {{{
-zsh_falkline_style_privileged="$(zsh_falkline_fg $zsh_falkline_color_privileged)$(zsh_falkline_bg $zsh_falkline_color_blob)"
-zsh_falkline_style_unprivileged="$(zsh_falkline_fg $zsh_falkline_color_unprivileged)$(zsh_falkline_bg $zsh_falkline_color_blob)"
-zsh_falkline_style_user="$(zsh_falkline_fg $zsh_falkline_color_user)$(zsh_falkline_bg $zsh_falkline_color_blob)"
-zsh_falkline_style_at="$(zsh_falkline_fg $zsh_falkline_color_at)$(zsh_falkline_bg $zsh_falkline_color_blob)"
-zsh_falkline_style_host="$(zsh_falkline_fg $zsh_falkline_color_host)$(zsh_falkline_bg $zsh_falkline_color_blob)"
-zsh_falkline_style_jobs="$(zsh_falkline_fg $zsh_falkline_color_jobs)$(zsh_falkline_bg $zsh_falkline_color_blob)"
-zsh_falkline_style_tty="$(zsh_falkline_fg $zsh_falkline_color_tty)$(zsh_falkline_bg $zsh_falkline_color_blob)"
-zsh_falkline_style_path="$(zsh_falkline_fg $zsh_falkline_color_path)$(zsh_falkline_bg $zsh_falkline_color_blob)"
-zsh_falkline_style_git="$(zsh_falkline_fg $zsh_falkline_color_git)$(zsh_falkline_bg $zsh_falkline_color_blob)"
-zsh_falkline_style_git_branch_icon="$(zsh_falkline_fg $zsh_falkline_color_git_branch_icon)$(zsh_falkline_bg $zsh_falkline_color_blob)"
-zsh_falkline_style_git_dirty="$(zsh_falkline_fg $zsh_falkline_color_git_dirty)$(zsh_falkline_bg $zsh_falkline_color_blob)"
-zsh_falkline_style_git_clean="$(zsh_falkline_fg $zsh_falkline_color_git_clean)$(zsh_falkline_bg $zsh_falkline_color_blob)"
-zsh_falkline_style_connector="$reset_color$(zsh_falkline_fg $zsh_falkline_color_connector)"
-zsh_falkline_style_prompt_mark="$reset_color$(zsh_falkline_fg $zsh_falkline_color_prompt_mark)"
-zsh_falkline_style_command="$(zsh_falkline_fg $zsh_falkline_color_command)"
-zsh_falkline_style_blob_transition_left="$reset_color$(zsh_falkline_fg $zsh_falkline_color_blob)$zsh_falkline_symbol_blob_transition_left"
-zsh_falkline_style_blob_transition_right="$reset_color$(zsh_falkline_fg $zsh_falkline_color_blob)$zsh_falkline_symbol_blob_transition_right"
-zsh_falkline_style_status_indicator_ok_transition_left=" $(zsh_falkline_fg $zsh_falkline_color_ok_bg)$zsh_falkline_symbol_blob_transition_left"
-zsh_falkline_style_status_indicator_ok_symbol="$(zsh_falkline_fg $zsh_falkline_color_ok_fg)$(zsh_falkline_bg $zsh_falkline_color_ok_bg)$zsh_falkline_symbol_command_success"
-zsh_falkline_style_status_indicator_ok_transition_right="$(zsh_falkline_fg $zsh_falkline_color_ok_bg)$(zsh_falkline_bg $zsh_falkline_color_blob)$zsh_falkline_symbol_blob_transition_middle"
-zsh_falkline_style_status_indicator_err_transition_left=" $(zsh_falkline_fg $zsh_falkline_color_err_bg)$zsh_falkline_symbol_blob_transition_left"
-zsh_falkline_style_status_indicator_err_symbol="$(zsh_falkline_fg $zsh_falkline_color_err_fg)$(zsh_falkline_bg $zsh_falkline_color_err_bg)$zsh_falkline_symbol_command_error"
-zsh_falkline_style_status_indicator_err_transition_right="$(zsh_falkline_fg $zsh_falkline_color_err_bg)$(zsh_falkline_bg $zsh_falkline_color_blob)$zsh_falkline_symbol_blob_transition_middle"
-zsh_falkline_style_date="$(zsh_falkline_fg $zsh_falkline_color_date)$(zsh_falkline_bg $zsh_falkline_color_blob)"
-zsh_falkline_style_time_separator="$(zsh_falkline_fg $zsh_falkline_color_time_separator)$(zsh_falkline_bg $zsh_falkline_color_blob)"
-zsh_falkline_style_time="$(zsh_falkline_fg $zsh_falkline_color_time)$(zsh_falkline_bg $zsh_falkline_color_blob)"
+zsh_falkline_style_privileged=$(zsh_falkline_fg $zsh_falkline_color_privileged)$(zsh_falkline_bg $(zsh_falkline_color_blob))
+zsh_falkline_style_unprivileged=$(zsh_falkline_fg $zsh_falkline_color_unprivileged)$(zsh_falkline_bg $(zsh_falkline_color_blob))
+zsh_falkline_style_user=$(zsh_falkline_fg $zsh_falkline_color_user)$(zsh_falkline_bg $(zsh_falkline_color_blob))
+zsh_falkline_style_at=$(zsh_falkline_fg $zsh_falkline_color_at)$(zsh_falkline_bg $(zsh_falkline_color_blob))
+zsh_falkline_style_host=$(zsh_falkline_fg $zsh_falkline_color_host)$(zsh_falkline_bg $(zsh_falkline_color_blob))
+zsh_falkline_style_jobs=$(zsh_falkline_fg $zsh_falkline_color_jobs)$(zsh_falkline_bg $(zsh_falkline_color_blob))
+zsh_falkline_style_tty=$(zsh_falkline_fg $zsh_falkline_color_tty)$(zsh_falkline_bg $(zsh_falkline_color_blob))
+zsh_falkline_style_path=$(zsh_falkline_fg $zsh_falkline_color_path)$(zsh_falkline_bg $(zsh_falkline_color_blob))
+zsh_falkline_style_git=$(zsh_falkline_fg $zsh_falkline_color_git)$(zsh_falkline_bg $(zsh_falkline_color_blob))
+zsh_falkline_style_git_branch_icon=$(zsh_falkline_fg $zsh_falkline_color_git_branch_icon)$(zsh_falkline_bg $(zsh_falkline_color_blob))
+zsh_falkline_style_git_dirty=$(zsh_falkline_fg $zsh_falkline_color_git_dirty)$(zsh_falkline_bg $(zsh_falkline_color_blob))
+zsh_falkline_style_git_clean=$(zsh_falkline_fg $zsh_falkline_color_git_clean)$(zsh_falkline_bg $(zsh_falkline_color_blob))
+zsh_falkline_style_connector=$reset_color$(zsh_falkline_fg $zsh_falkline_color_connector)
+zsh_falkline_style_prompt_mark=$reset_color$(zsh_falkline_fg $zsh_falkline_color_prompt_mark)
+zsh_falkline_style_command=$(zsh_falkline_fg $zsh_falkline_color_command)
+zsh_falkline_style_blob_transition_left=$reset_color$(zsh_falkline_fg $(zsh_falkline_color_blob))$zsh_falkline_symbol_blob_transition_left
+zsh_falkline_style_blob_transition_right=$reset_color$(zsh_falkline_fg $(zsh_falkline_color_blob))$zsh_falkline_symbol_blob_transition_right
+zsh_falkline_style_status_indicator_ok_transition_left=\ $(zsh_falkline_fg $zsh_falkline_color_ok_bg)$zsh_falkline_symbol_blob_transition_left
+zsh_falkline_style_status_indicator_ok_symbol=$(zsh_falkline_fg $zsh_falkline_color_ok_fg)$(zsh_falkline_bg $zsh_falkline_color_ok_bg)$zsh_falkline_symbol_command_success
+zsh_falkline_style_status_indicator_ok_transition_right=$(zsh_falkline_fg $zsh_falkline_color_ok_bg)$(zsh_falkline_bg $(zsh_falkline_color_blob))$zsh_falkline_symbol_blob_transition_middle
+zsh_falkline_style_status_indicator_err_transition_left=\ $(zsh_falkline_fg $zsh_falkline_color_err_bg)$zsh_falkline_symbol_blob_transition_left
+zsh_falkline_style_status_indicator_err_symbol=$(zsh_falkline_fg $zsh_falkline_color_err_fg)$(zsh_falkline_bg $zsh_falkline_color_err_bg)$zsh_falkline_symbol_command_error
+zsh_falkline_style_status_indicator_err_transition_right=$(zsh_falkline_fg $zsh_falkline_color_err_bg)$(zsh_falkline_bg $(zsh_falkline_color_blob))$zsh_falkline_symbol_blob_transition_middle
+zsh_falkline_style_date=$(zsh_falkline_fg $zsh_falkline_color_date)$(zsh_falkline_bg $(zsh_falkline_color_blob))
+zsh_falkline_style_time_separator=$(zsh_falkline_fg $zsh_falkline_color_time_separator)$(zsh_falkline_bg $(zsh_falkline_color_blob))
+zsh_falkline_style_time=$(zsh_falkline_fg $zsh_falkline_color_time)$(zsh_falkline_bg $(zsh_falkline_color_blob))
 # Style definitions }}}
 # Statusline pieces {{{
-# NOTE: the number in '%n{...%}' must be the length of the mark! Otherwise tab completion will glitch the prompt
-zsh_falkline_prompt_mark="%4{ $zsh_falkline_style_prompt_mark$zsh_falkline_symbol_prompt_mark$reset_color %}"
-#$zsh_falkline_style_command"
-zsh_falkline_time_separator="$zsh_falkline_style_time_separator$zsh_falkline_symbol_time_separator"
+# NOTE: the number in "%n{...%}" must be the length of the mark! Otherwise tab completion will glitch the prompt{{{}}}
+zsh_falkline_prompt_mark="%4{ $zsh_falkline_style_prompt_mark$zsh_falkline_symbol_prompt_mark$reset_color %}$zsh_falkline_style_command"
+zsh_falkline_time_separator=$zsh_falkline_style_time_separator$zsh_falkline_symbol_time_separator
 # Privilege symbol getter {{{
 function zsh_falkline_get_privilege_marker() {
    if [[ "$1" == "#" ]]; then
-      echo "$zsh_falkline_style_privileged$zsh_falkline_symbol_privileged"
+      echo $zsh_falkline_style_privileged$zsh_falkline_symbol_privileged
    else
-      echo "$zsh_falkline_style_unprivileged$zsh_falkline_symbol_unprivileged"
+      echo $zsh_falkline_style_unprivileged$zsh_falkline_symbol_unprivileged
    fi
 }
 # Privilege symbol getter }}}
@@ -137,31 +147,31 @@ function zsh_falkline_get_git_info() {
 # Statusline left side {{{
 function zsh_falkline_update_left() {
    zsh_falkline_left_side="%(?.$zsh_falkline_style_status_indicator_ok_transition_left$zsh_falkline_style_status_indicator_ok_symbol$zsh_falkline_style_status_indicator_ok_transition_right.$zsh_falkline_style_status_indicator_err_transition_left$zsh_falkline_style_status_indicator_err_symbol$zsh_falkline_style_status_indicator_err_transition_right)"
-   zsh_falkline_left_side+="$(zsh_falkline_get_privilege_marker $(print -P %#))"
-   zsh_falkline_left_side+="$zsh_falkline_style_user%B%n%b"
-   zsh_falkline_left_side+="$zsh_falkline_style_at$zsh_falkline_symbol_at"
-   zsh_falkline_left_side+="$zsh_falkline_style_host%m"
-   zsh_falkline_left_side+="$zsh_falkline_style_blob_transition_right"
-   zsh_falkline_left_side+="$zsh_falkline_style_connector$zsh_falkline_symbol_connector"
-   zsh_falkline_left_side+="$zsh_falkline_style_blob_transition_left"
-   zsh_falkline_left_side+="$zsh_falkline_style_path%~"
-   zsh_falkline_left_side+="$zsh_falkline_style_blob_transition_right"
+   zsh_falkline_left_side+=$(zsh_falkline_get_privilege_marker $(print -P %#))
+   zsh_falkline_left_side+=$zsh_falkline_style_user%B%n%b
+   zsh_falkline_left_side+=$zsh_falkline_style_at$zsh_falkline_symbol_at
+   zsh_falkline_left_side+=$zsh_falkline_style_host%m
+   zsh_falkline_left_side+=$zsh_falkline_style_blob_transition_right
+   zsh_falkline_left_side+=$zsh_falkline_style_connector$zsh_falkline_symbol_connector
+   zsh_falkline_left_side+=$zsh_falkline_style_blob_transition_left
+   zsh_falkline_left_side+=$zsh_falkline_style_path%~
+   zsh_falkline_left_side+=$zsh_falkline_style_blob_transition_right
 }
 # Statusline left side }}}
 # Statusline right side {{{
 function zsh_falkline_update_right() {
-   zsh_falkline_right_side="$(zsh_falkline_get_git_info)"
-   zsh_falkline_right_side+="$zsh_falkline_style_connector$zsh_falkline_symbol_connector"
-   zsh_falkline_right_side+="$zsh_falkline_style_blob_transition_left"
-   zsh_falkline_right_side+="$(zsh_falkline_get_job_icon)"
-   zsh_falkline_right_side+="$zsh_falkline_style_tty%l"
-   zsh_falkline_right_side+="$zsh_falkline_style_blob_transition_right"
-   zsh_falkline_right_side+="$zsh_falkline_style_connector$zsh_falkline_symbol_connector"
-   zsh_falkline_right_side+="$zsh_falkline_style_blob_transition_left"
-   zsh_falkline_right_side+="$zsh_falkline_style_date%D"
-   zsh_falkline_right_side+="$zsh_falkline_time_separator"
-   zsh_falkline_right_side+="$zsh_falkline_style_time%*"
-   zsh_falkline_right_side+="$zsh_falkline_style_blob_transition_right "
+   zsh_falkline_right_side=$(zsh_falkline_get_git_info)
+   zsh_falkline_right_side+=$zsh_falkline_style_connector$zsh_falkline_symbol_connector
+   zsh_falkline_right_side+=$zsh_falkline_style_blob_transition_left
+   zsh_falkline_right_side+=$(zsh_falkline_get_job_icon)
+   zsh_falkline_right_side+=$zsh_falkline_style_tty%l
+   zsh_falkline_right_side+=$zsh_falkline_style_blob_transition_right
+   zsh_falkline_right_side+=$zsh_falkline_style_connector$zsh_falkline_symbol_connector
+   zsh_falkline_right_side+=$zsh_falkline_style_blob_transition_left
+   zsh_falkline_right_side+=$zsh_falkline_style_date%D
+   zsh_falkline_right_side+=$zsh_falkline_time_separator
+   zsh_falkline_right_side+=$zsh_falkline_style_time%*
+   zsh_falkline_right_side+=$zsh_falkline_style_blob_transition_right 
 }
 # Statusline right side }}}
 # Unused length getter {{{
@@ -187,7 +197,7 @@ function precmd {
    zsh_falkline_update_right
    zsh_falkline_update_middle
    echo
-   print -P '$zsh_falkline_left_side$zsh_falkline_middle$zsh_falkline_right_side'
+   print -P $zsh_falkline_left_side$zsh_falkline_middle$zsh_falkline_right_side
 }
 
 # allows the command input to have a different color than the command output
@@ -196,6 +206,6 @@ function precmd {
 # }
 
 # the prompt itself is empty, precmd() is used instead to side-step a zle bug
-PROMPT='$zsh_falkline_prompt_mark'
+PROMPT=$zsh_falkline_prompt_mark
 # Prompt hooks }}}
 # EOF
