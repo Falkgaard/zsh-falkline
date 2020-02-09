@@ -141,21 +141,12 @@ ZSH_THEME_GIT_PROMPT_DIRTY="$zsh_falkline_style_git_dirty$zsh_falkline_symbol_gi
 ZSH_THEME_GIT_PROMPT_CLEAN="$zsh_falkline_style_git_clean$zsh_falkline_symbol_git_clean"
 function zsh_falkline_get_git_info() {
   ref=$(git symbolic-ref HEAD 2> /dev/null) || return
-  echo "$zsh_falkline_style_blob_transition_left$(parse_git_dirty)$zsh_falkline_style_git$(current_branch)$zsh_falkline_style_git_branch_icon$zsh_falkline_symbol_git_branch_icon$zsh_falkline_style_blob_transition_right$reset_color$zsh_falkline_style_connector$zsh_falkline_symbol_connector"
-}
-
-function zsh_falkline_get_status_indicator() {
-   if [ $zsh_falkline_last_retval -eq "0" ]; then
-      echo $zsh_falkline_style_status_indicator_ok_transition_left$zsh_falkline_style_status_indicator_ok_symbol$zsh_falkline_style_status_indicator_ok_transition_right
-   else
-      echo $zsh_falkline_style_status_indicator_err_transition_left$zsh_falkline_style_status_indicator_err_symbol$zsh_falkline_style_status_indicator_err_transition_right
-   fi
+  echo "$zsh_falkline_style_blob_transition_left$(parse_git_dirty)$zsh_falkline_style_git$(current_branch)$zsh_falkline_style_git_branch_icon$zsh_falkline_symbol_git_branch_icon$zsh_falkline_style_blob_transition_right$reset_color"
 }
 # Git status piece, WIP }}}
 # Statusline left side {{{
 function zsh_falkline_update_left() {
-   zsh_falkline_left_side=''
-   zsh_falkline_left_side+=$(zsh_falkline_get_status_indicator)
+   zsh_falkline_left_side="%(?.$zsh_falkline_style_status_indicator_ok_transition_left$zsh_falkline_style_status_indicator_ok_symbol$zsh_falkline_style_status_indicator_ok_transition_right.$zsh_falkline_style_status_indicator_err_transition_left$zsh_falkline_style_status_indicator_err_symbol$zsh_falkline_style_status_indicator_err_transition_right)"
    zsh_falkline_left_side+=$(zsh_falkline_get_privilege_marker $(print -P %#))
    zsh_falkline_left_side+=$zsh_falkline_style_user%B%n%b
    zsh_falkline_left_side+=$zsh_falkline_style_at$zsh_falkline_symbol_at
@@ -169,8 +160,8 @@ function zsh_falkline_update_left() {
 # Statusline left side }}}
 # Statusline right side {{{
 function zsh_falkline_update_right() {
-   zsh_falkline_right_side=''
-   zsh_falkline_right_side+=$(zsh_falkline_get_git_info)
+   zsh_falkline_right_side=$(zsh_falkline_get_git_info)
+   zsh_falkline_right_side+=$zsh_falkline_style_connector$zsh_falkline_symbol_connector
    zsh_falkline_right_side+=$zsh_falkline_style_blob_transition_left
    zsh_falkline_right_side+=$(zsh_falkline_get_job_icon)
    zsh_falkline_right_side+=$zsh_falkline_style_tty%l
@@ -185,21 +176,21 @@ function zsh_falkline_update_right() {
 # Statusline right side }}}
 # Unused length getter {{{
 # computes the number of unused characters unused by the prompt sides in the terminal
-function zsh_falkline_get_mid_length() {
-   local len=$COLUMNS
-   local used=$(print -P "$zsh_falkline_left_side")$(print -P "$zsh_falkline_right_side")
-   used=$(echo "$used" | sed 's/\x1b\[[0-9;]*m//g')
-   (( len=len - $#used ))
-   if (( $len < 0 )); then
-      echo "0"
+function zsh_falkline_get_used_length() {
+   local tmp=$(print -P "$zsh_falkline_left_side")$(print -P "$zsh_falkline_right_side")
+   tmp=$(echo "$tmp" | sed 's/\x1b\[[0-9;]*m//g')
+   if (( $#tmp < "0" )); then
+      echo 0
    else
-      echo "$len"
+      echo $#tmp
    fi
 }
 # Unused length getter }}}
 # Unusued space filler {{{
 function zsh_falkline_update_middle() {
-   local len=$(zsh_falkline_get_mid_length)
+   local len=${COLUMNS}
+   (( len=len - $(zsh_falkline_get_used_length) ))
+   echo len is: $len... unused space is: $(zsh_falkline_get_used_length)... width is: ${COLUMNS}
    zsh_falkline_middle="$zsh_falkline_style_connector$(printf '%*s\n' $len "" | sed "s/\ /$zsh_falkline_symbol_connector/g")"
 }
 # Unused space filler }}}
@@ -207,7 +198,6 @@ function zsh_falkline_update_middle() {
 # Prompt hooks {{{
 # updates prompt left/right sides pre-draw
 function precmd {
-   zsh_falkline_last_retval=$(print -P %?) # hack due to using precmd
    zsh_falkline_update_left
    zsh_falkline_update_right
    zsh_falkline_update_middle
