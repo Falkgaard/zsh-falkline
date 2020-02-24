@@ -1,10 +1,9 @@
 # Author: Falk (falkgaard@gmail.com) 2020
 # License: CC0 (AKA "Do Whatever The Fuck You Want")
-
-# TODO: Adaptive width? E.g. skip tty blob or git blob if width is insufficient
-# TODO: Fix width filler bug (seems CWD related)
-
-# Documentation {{
+# TODO {{{
+#     Adaptive width? E.g. skip tty blob or git blob if width is insufficient
+# TODO }}}
+# Documentation {{{
 #
 #  1. Install Oh-My-Zsh
 #  2. Put this file in ~/.oh-my-zsh/themes/
@@ -48,7 +47,7 @@ zsh_falkline_symbol_git_dirty='%1{●%} '
 zsh_falkline_symbol_git_clean='%1{●%} '
 # Nnumber style {{{
 # Pick one!
-#   zsh_falkline_symbol_array_numbers=("❶ " "❷ " "❸ " "❹ " "❺ " "❻ " "❼ " "❽ " "❾ " "❿ " "⓫ " "⓬ " "⓭ " "⓮ " "⓯ " "⓰ " "⓱ " "⓲ " "⓳ " "⓴ ")
+    zsh_falkline_symbol_array_numbers=("❶ " "❷ " "❸ " "❹ " "❺ " "❻ " "❼ " "❽ " "❾ " "❿ " "⓫ " "⓬ " "⓭ " "⓮ " "⓯ " "⓰ " "⓱ " "⓲ " "⓳ " "⓴ ")
 #   zsh_falkline_symbol_array_numbers=("⚀ " "⚁ " "⚂ " "⚃ " "⚄ " "⚅ ")
 #   zsh_falkline_symbol_array_numbers=("⒈ " "⒉ " "⒊ " "⒋ " "⒌ " "⒍ " "⒎ " "⒏ " "⒐ " "⒑ " "⒒ " "⒓ " "⒔ " "⒕ " "⒖ " "⒗ " "⒘ " "⒙ " "⒚ " "⒛ ")
 #   zsh_falkline_symbol_array_numbers=("⑴ " "⑵ " "⑶ " "⑷ " "⑸ " "⑹ " "⑺ " "⑻ " "⑼ " "⑽ " "⑾ " "⑿ " "⒀ " "⒁ " "⒂ " "⒃ " "⒄ " "⒅ " "⒆ " "⒇ ")
@@ -132,19 +131,19 @@ function zsh_falkline_get_privilege_marker() {
 # Privilege symbol getter }}}
 # Job number symbol getter {{{
 # TODO: Handle case where there are insufficient symbols
-function zsh_falkline_get_job_icon() {
+function zsh_falkline_get_job_icon {
    echo "$zsh_falkline_style_jobs${zsh_falkline_symbol_array_numbers[$(jobs | wc -l)]}"
 }
 # Job number symbol getter }}}
 # Git status piece, WIP {{{
 ZSH_THEME_GIT_PROMPT_DIRTY="$zsh_falkline_style_git_dirty$zsh_falkline_symbol_git_dirty"
 ZSH_THEME_GIT_PROMPT_CLEAN="$zsh_falkline_style_git_clean$zsh_falkline_symbol_git_clean"
-function zsh_falkline_get_git_info() {
+function zsh_falkline_get_git_info {
   ref=$(git symbolic-ref HEAD 2> /dev/null) || return
   echo "$zsh_falkline_style_blob_transition_left$(parse_git_dirty)$zsh_falkline_style_git$(current_branch)$zsh_falkline_style_git_branch_icon$zsh_falkline_symbol_git_branch_icon$zsh_falkline_style_blob_transition_right$reset_color$zsh_falkline_style_connector$zsh_falkline_symbol_connector"
 }
 
-function zsh_falkline_get_status_indicator() {
+function zsh_falkline_get_status_indicator {
    if [ $zsh_falkline_last_retval -eq "0" ]; then
       echo $zsh_falkline_style_status_indicator_ok_transition_left$zsh_falkline_style_status_indicator_ok_symbol$zsh_falkline_style_status_indicator_ok_transition_right
    else
@@ -153,7 +152,7 @@ function zsh_falkline_get_status_indicator() {
 }
 # Git status piece, WIP }}}
 # Statusline left side {{{
-function zsh_falkline_update_left() {
+function zsh_falkline_update_left {
    zsh_falkline_left_side=''
    zsh_falkline_left_side+=$(zsh_falkline_get_status_indicator)
    zsh_falkline_left_side+=$(zsh_falkline_get_privilege_marker $(print -P %#))
@@ -168,7 +167,7 @@ function zsh_falkline_update_left() {
 }
 # Statusline left side }}}
 # Statusline right side {{{
-function zsh_falkline_update_right() {
+function zsh_falkline_update_right {
    zsh_falkline_right_side=''
    zsh_falkline_right_side+=$(zsh_falkline_get_git_info)
    zsh_falkline_right_side+=$zsh_falkline_style_blob_transition_left
@@ -185,7 +184,7 @@ function zsh_falkline_update_right() {
 # Statusline right side }}}
 # Unused length getter {{{
 # computes the number of unused characters unused by the prompt sides in the terminal
-function zsh_falkline_get_mid_length() {
+function zsh_falkline_get_mid_length {
    local len=$COLUMNS
    local used=$(print -P "$zsh_falkline_left_side")$(print -P "$zsh_falkline_right_side")
    used=$(echo "$used" | sed 's/\x1b\[[0-9;]*m//g')
@@ -198,7 +197,7 @@ function zsh_falkline_get_mid_length() {
 }
 # Unused length getter }}}
 # Unusued space filler {{{
-function zsh_falkline_update_middle() {
+function zsh_falkline_update_middle {
    local len=$(zsh_falkline_get_mid_length)
    zsh_falkline_middle="$zsh_falkline_style_connector$(printf '%*s\n' $len "" | sed "s/\ /$zsh_falkline_symbol_connector/g")"
 }
