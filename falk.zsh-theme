@@ -209,10 +209,11 @@ function precmd {
    zsh_falkline_last_retval=$(print -P %?) # hack due to using precmd
    zsh_falkline_update_left
    zsh_falkline_update_right
-   zsh_falkline_update_middle
+#	zsh_falkline_update_middle
+	zsh_falkline_middle="$zsh_falkline_style_connector$zsh_falkline_symbol_connector"
    echo
    print -P $zsh_falkline_left_side$zsh_falkline_middle$zsh_falkline_right_side
-}
+	}
 
 # allows the command input to have a different color than the command output
 # function preexec {
